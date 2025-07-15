@@ -1,0 +1,38 @@
+﻿[
+  {
+    "op": "add",
+    "path": "/0/requiresTrait",
+    "value": "armorrepairmaster",
+    "file": "recipes/grid/armorrepair/lamellar.json"
+  },
+  {
+    "op": "add",
+    "path": "/1/requiresTrait",
+    "value": "armorrepairmaster",
+    "file": "recipes/grid/armorrepair/lamellar.json"
+  },
+  {
+    "op": "add",
+    "path": "/2/requiresTrait",
+    "value": "armorrepairmaster",
+    "file": "recipes/grid/armorrepair/lamellar.json"
+  },
+  {
+    "op": "add",
+    "path": "/3/requiresTrait",
+    "value": "armorrepairmaster",
+    "file": "recipes/grid/armorrepair/lamellar.json"
+  },
+  {
+    "op": "add",
+    "path": "/4/requiresTrait",
+    "value": "armorrepairmaster",
+    "file": "recipes/grid/armorrepair/lamellar.json"
+  },
+  {
+    "op": "add",
+    "path": "/5/requiresTrait",
+    "value": "armorrepairmaster",
+    "file": "recipes/grid/armorrepair/lamellar.json"
+  }
+]

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "canclasses", "canclasses\canclasses\canclasses.csproj", "{72AA62B6-E2BF-4461-ACE9-74B8E55C734C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CakeBuild", "canclasses\ZZCakeBuild\CakeBuild.csproj", "{A8F93C84-3C89-4549-B239-B0760A9992AD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{72AA62B6-E2BF-4461-ACE9-74B8E55C734C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72AA62B6-E2BF-4461-ACE9-74B8E55C734C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72AA62B6-E2BF-4461-ACE9-74B8E55C734C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72AA62B6-E2BF-4461-ACE9-74B8E55C734C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8F93C84-3C89-4549-B239-B0760A9992AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8F93C84-3C89-4549-B239-B0760A9992AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8F93C84-3C89-4549-B239-B0760A9992AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8F93C84-3C89-4549-B239-B0760A9992AD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {64588DC8-8E89-46EA-9049-14E4B5A421F0}
+	EndGlobalSection
+EndGlobal

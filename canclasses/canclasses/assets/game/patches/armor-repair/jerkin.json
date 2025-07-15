@@ -1,0 +1,14 @@
+﻿[
+  {
+    "op": "add",
+    "path": "/0/requiresTrait",
+    "value": "armorrepairmaster",
+    "file": "recipes/grid/armorrepair/jerkin.json"
+  },
+  {
+    "op": "add",
+    "path": "/1/requiresTrait",
+    "value": "armorrepairmaster",
+    "file": "recipes/grid/armorrepair/jerkin.json"
+  }
+]

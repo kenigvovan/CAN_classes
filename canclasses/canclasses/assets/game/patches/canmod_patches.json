@@ -1,0 +1,29 @@
+﻿[
+
+
+  {
+    "file": "game:blocktypes/clay/refractorybrick.json",
+    "reason": "replace",
+    "path": "/attributes/heatResistanceByType",
+    "value": {
+      "*-tier1": 0.4,
+      "*-tier2": 0.55,
+      "*-tier3": 0.999
+    }
+  },
+  {
+    "file": "game:entities/humanoid/player.json",
+    "reason": "add",
+    "path": "/server/behaviors/-",
+    "value": { "code": "cantiredness" }
+  },
+  {
+    "op": "replace",
+    "path": "/13",
+    "value": {
+      "blockCodes": [ "crop-sunflower-3", "crop-sunflower-6", "crop-sunflower-8", "crop-sunflower-9", "crop-sunflower-12" ]
+    },
+    "file": "worldgen/blockpatches/crop.json"
+  }
+
+]

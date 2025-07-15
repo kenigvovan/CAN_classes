@@ -1,0 +1,20 @@
+﻿[
+  {
+    "op": "add",
+    "path": "/0/requiresTrait",
+    "value": "armorrepairmaster",
+    "file": "recipes/grid/armorrepair/chain.json"
+  },
+  {
+    "op": "add",
+    "path": "/1/requiresTrait",
+    "value": "armorrepairmaster",
+    "file": "recipes/grid/armorrepair/chain.json"
+  },
+  {
+    "op": "add",
+    "path": "/2/requiresTrait",
+    "value": "armorrepairmaster",
+    "file": "recipes/grid/armorrepair/chain.json"
+  }
+]

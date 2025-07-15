@@ -1,0 +1,33 @@
+﻿{
+  "smith": {
+    "game:charcoalpile": 3,
+    "game:ore-poor": 5,
+    "game:ore-medium": 10,
+    "game:ore-rich": 15,
+    "game:ore-olivine": 2,
+    "game:ore-quartz": 1
+  },
+  "farmer": {
+    "game:crop-sunflower-12": 14,
+    "game:crop-amaranth-9": 14,
+    "game:crop-cabbage-12": 14,
+    "game:crop-carrot-7": 14,
+    "game:crop-cassava-9": 14,
+    "game:crop-flax-9": 14,
+    "game:crop-onion-7": 14,
+    "game:crop-parsnip-8": 14,
+    "game:crop-peanut-9": 14,
+    "game:crop-pineapple-16": 14,
+    "game:crop-rice-10": 14,
+    "game:crop-rye-9": 14,
+    "game:crop-soybean-11": 14,
+    "game:crop-spelt-9": 14,
+    "game:crop-turnip-5": 14
+  },
+  "handy": {
+
+  },
+  "soldier": {
+
+  }
+}
