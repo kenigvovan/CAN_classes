@@ -1,6 +1,4 @@
-﻿using canmods.src.characterClassesSystem;
-using canmods.src;
-using HarmonyLib;
+﻿using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
@@ -10,6 +8,8 @@ using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
+using canclasses.src.characterClassesSystem;
+using System.Linq;
 
 namespace canclasses.src
 {
