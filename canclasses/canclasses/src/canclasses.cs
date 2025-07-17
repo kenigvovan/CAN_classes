@@ -10,6 +10,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 using canclasses.src.characterClassesSystem;
 using System.Linq;
+using System;
 
 namespace canclasses.src
 {
@@ -34,8 +35,9 @@ namespace canclasses.src
             base.Start(api);
             api.Event.MatchesGridRecipe += new MatchGridRecipeDelegate(onMatchGridRecipeDelegate);
             harmonyInstance = new Harmony(harmonyID);
-            harmonyInstance.Patch(typeof(ModSystem).GetMethod("ShouldLoad"), prefix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_ModSystemShouldLoad")));
-            harmonyInstance.Patch(typeof(Vintagestory.GameContent.BlockEntityAnvil).GetMethod("CheckIfFinished"), transpiler: new HarmonyMethod(typeof(harmPatch).GetMethod("Transpiler_check")));
+            harmonyInstance.Patch(typeof(ModSystem).GetMethod("ShouldLoad", new Type[] { typeof(ICoreAPI)}), prefix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_ModSystemShouldLoad")));
+            //TODO
+            //harmonyInstance.Patch(typeof(Vintagestory.GameContent.BlockEntityAnvil).GetMethod("CheckIfFinished"), transpiler: new HarmonyMethod(typeof(harmPatch).GetMethod("Transpiler_check")));
             harmonyInstance.Patch(typeof(CollectibleObject).GetMethod("GetHeldItemInfo"), postfix: new HarmonyMethod(typeof(harmPatch).GetMethod("Postfix_GetHeldItemInfo")));
             harmonyInstance.Patch(typeof(CollectibleObject).GetMethod("OnCreatedByCrafting"), postfix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_OnCreatedByCrafting")));
             harmonyInstance.Patch(typeof(CollectibleObject).GetMethod("ShouldDisplayItemDamage"), postfix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_ShouldDisplayItemDamage_CollectibleObject")));
@@ -72,14 +74,16 @@ namespace canclasses.src
 
             canCharSys = api.ModLoader.GetModSystem<CANCharacterSystem>();
             canCharSys = api.ModLoader.GetModSystem<CANCharacterSystem>();
-            api.RegisterCommand("can", "", "", canHandlerCommand);
-            api.RegisterCommand("canadm", "", "", canAdmHandlerCommand);
+            //TODO
+            //api.RegisterCommand("can", "", "", canHandlerCommand);
+            //api.RegisterCommand("canadm", "", "", canAdmHandlerCommand);
             api.Event.PlayerJoin += reserClassPlayer;
             api.Event.OnEntityDeath += onEntityDeath;
 
             api.Event.PlayerNowPlaying += onPlayerPlaying;
 
-            foreach (var it in api.World.Blocks)
+            //TODO
+            /*foreach (var it in api.World.Blocks)
             {
                 if (it.Code != null && it.Code.Path.Contains("log-placed"))
                 {
@@ -88,7 +92,7 @@ namespace canclasses.src
                         itDr.DropModbyStat = null;
                     }
                 }
-            }
+            }*/
 
         }
         public void onPlayerPlaying(IServerPlayer byPlayer)

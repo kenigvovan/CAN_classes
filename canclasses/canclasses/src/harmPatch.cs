@@ -238,13 +238,15 @@ namespace canclasses.src
                 canclasses.canCharSys.playersProgressInfos[(byEntity as EntityPlayer).PlayerUID].addExp(num * Config.Current.EXP_CHOPPED_LOG.Val);
             }      
         }
+        public static FieldInfo BlockEntityAnvilworkItemStack = typeof(BlockEntityAnvil).GetField("workItemStack", BindingFlags.NonPublic | BindingFlags.Instance);
         public static IEnumerable<CodeInstruction> Transpiler_check(IEnumerable<CodeInstruction> instructions)
         {
             bool found = false;
             var codes = new List<CodeInstruction>(instructions);
             var decMethod = AccessTools.GetDeclaredMethods(typeof(IWorldAccessor))
-            .Where(m => m.Name == "SpawnItemEntity" && m.GetParameters().Types().Contains(typeof(ItemStack)) && m.GetParameters().Types().Contains(typeof(Vec3d)) && m.GetParameters().Types().Contains(typeof(Vec3d)))
-            .Single();
+          .Where(m => m.Name == "SpawnItemEntity" && m.GetParameters().Types().Contains(typeof(ItemStack)) && m.GetParameters().Types().Contains(typeof(Vec3d)) && m.GetParameters().Types().Contains(typeof(Vec3d))).ElementAt(1)
+         ;
+
             var proxyMethod = AccessTools.Method(typeof(harmPatch), "addNameAndProcessMadeTool");
             for (int i = 0; i < codes.Count; i++)
             {
@@ -253,6 +255,10 @@ namespace canclasses.src
                 {
                     yield return new CodeInstruction(OpCodes.Ldarg_1);
                     yield return new CodeInstruction(OpCodes.Ldloc_0);
+                    //yield return new CodeInstruction(OpCodes.Ldloc_0);
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, BlockEntityAnvilworkItemStack);
+                    //get workingitem
                     yield return new CodeInstruction(OpCodes.Call, proxyMethod);
                     found = true;
                 }
@@ -260,7 +266,7 @@ namespace canclasses.src
             }
         }
 
-        public static void addNameAndProcessMadeTool(IServerPlayer byPlayer, ItemStack itemStack)
+        public static void addName(IServerPlayer byPlayer, ItemStack itemStack, ItemStack workItemStack)
         {
 
             if (byPlayer != null)
