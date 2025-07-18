@@ -37,12 +37,13 @@ namespace canclasses.src
             harmonyInstance = new Harmony(harmonyID);
             harmonyInstance.Patch(typeof(ModSystem).GetMethod("ShouldLoad", new Type[] { typeof(ICoreAPI)}), prefix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_ModSystemShouldLoad")));
             //TODO
-            //harmonyInstance.Patch(typeof(Vintagestory.GameContent.BlockEntityAnvil).GetMethod("CheckIfFinished"), transpiler: new HarmonyMethod(typeof(harmPatch).GetMethod("Transpiler_check")));
+            var c = typeof(Vintagestory.GameContent.BlockEntityAnvil).GetMethod("CheckIfFinished");
+            var ccc = typeof(harmPatch).GetMethod("Transpiler_check");
+            harmonyInstance.Patch(typeof(Vintagestory.GameContent.BlockEntityAnvil).GetMethod("CheckIfFinished"), transpiler: new HarmonyMethod(typeof(harmPatch).GetMethod("Transpiler_check")));
             harmonyInstance.Patch(typeof(CollectibleObject).GetMethod("GetHeldItemInfo"), postfix: new HarmonyMethod(typeof(harmPatch).GetMethod("Postfix_GetHeldItemInfo")));
             harmonyInstance.Patch(typeof(CollectibleObject).GetMethod("OnCreatedByCrafting"), postfix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_OnCreatedByCrafting")));
             harmonyInstance.Patch(typeof(CollectibleObject).GetMethod("ShouldDisplayItemDamage"), postfix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_ShouldDisplayItemDamage_CollectibleObject")));
             harmonyInstance.Patch(typeof(CollectibleObject).GetMethod("GetItemDamageColor"), prefix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_GetItemDamageColor_CollectibleObject")));
-
             harmonyInstance.Patch(typeof(CollectibleObject).GetMethod("GetMaxDurability"), prefix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_CollectibleObject_GetMaxDurability")));
 
         }

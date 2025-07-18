@@ -244,10 +244,10 @@ namespace canclasses.src
             bool found = false;
             var codes = new List<CodeInstruction>(instructions);
             var decMethod = AccessTools.GetDeclaredMethods(typeof(IWorldAccessor))
-          .Where(m => m.Name == "SpawnItemEntity" && m.GetParameters().Types().Contains(typeof(ItemStack)) && m.GetParameters().Types().Contains(typeof(Vec3d)) && m.GetParameters().Types().Contains(typeof(Vec3d))).ElementAt(1)
+          .Where(m => m.Name == "SpawnItemEntity" && m.GetParameters().Types().Contains(typeof(ItemStack)) && m.GetParameters().Types().Contains(typeof(Vec3d)) && m.GetParameters().Types().Contains(typeof(Vec3d))).ElementAt(0)
          ;
 
-            var proxyMethod = AccessTools.Method(typeof(harmPatch), "addNameAndProcessMadeTool");
+            var proxyMethod = AccessTools.Method(typeof(harmPatch), "addName");
             for (int i = 0; i < codes.Count; i++)
             {
                 if (!found &&

@@ -149,7 +149,6 @@ namespace canclasses.src.characterClassesSystem
                 DataInt = 2
             });
             this.charDlg.RenderTabHandlers.Add(new Action<GuiComposer>(this.composeProgressTab));
-
             api.Network.GetChannel("cancharactersystem").SetMessageHandler<CANCharacterProgressInfoPacket>((packet) =>
             {
                 {
@@ -1050,23 +1049,6 @@ namespace canclasses.src.characterClassesSystem
 
             capi.Settings.String["lastSkinSelection"] = string.Join(",", parts);
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
