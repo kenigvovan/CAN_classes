@@ -104,7 +104,6 @@ namespace canclasses.src.characterClassesSystem
         double clientCurrentExpToNextLevel;
         double clientAllExpToNextLevel;
         int currentDayNumber;
-
         public override void Start(ICoreAPI api)
         {
             this.api = api;
@@ -1049,17 +1048,6 @@ namespace canclasses.src.characterClassesSystem
 
             capi.Settings.String["lastSkinSelection"] = string.Join(",", parts);
         }
-
-
-
-        /// <summary>
-        /// //////////
-        /// </summary>
-
-
-       
-
-
         public override void Dispose()
         {
             if (this.api.Side == EnumAppSide.Server)
