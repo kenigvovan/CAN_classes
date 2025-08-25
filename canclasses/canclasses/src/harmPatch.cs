@@ -1,9 +1,12 @@
 ﻿using Cairo;
+using canclasses.src.characterClassesSystem;
+using canclasses.src.charClassSystem.PlayerProgression;
 using HarmonyLib;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
@@ -16,6 +19,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.Client.NoObf;
+using Vintagestory.Common;
 using Vintagestory.GameContent;
 
 namespace canclasses.src
@@ -54,10 +58,11 @@ namespace canclasses.src
                 }
                 else
                 {
-                    if (canclasses.canCharSys.blockIdToExpGain.ContainsKey(classcode) && canclasses.canCharSys.blockIdToExpGain[classcode].TryGetValue(block.Id, out var expVal))
+                    foreach (var it in canclasses.canCharSys.blockIdToExpGain)
                     {
-                        if (canclasses.canCharSys.playersProgressInfos.ContainsKey(plr.PlayerUID)){
-                            canclasses.canCharSys.playersProgressInfos[plr.PlayerUID].addExp(expVal);
+                        if (it.Value.TryGetValue(block.Id, out var expVal))
+                        {
+                            canclasses.canCharSys.AddExperience(expVal, plr, it.Key);
                         }
                     }
                 }
@@ -88,12 +93,9 @@ namespace canclasses.src
             {
                 return;
             }
-            string key = player.Entity.WatchedAttributes.GetString("characterClass", (string)null);
-            if (key == null)
-                return;
-            if (canclasses.canCharSys.expReceiversClasses["chiseling"].Contains(key))
+            foreach (var it in canclasses.canCharSys.expReceiversClasses["chiseling"])
             {
-                canclasses.canCharSys.playersProgressInfos[player.PlayerUID].addExp(Config.Current.EXP_CHISEL_USE.Val);
+                canclasses.canCharSys.AddExperience(Config.Current.EXP_CHISEL_USE.Val, player, it);
             }
         }
         public static IEnumerable<CodeInstruction> Transpiler_UpdateVoxel_BlockEntityChiselstatic(IEnumerable<CodeInstruction> instructions)
@@ -228,15 +230,11 @@ namespace canclasses.src
             {
                 return;
             }
-            string key = byEntity.WatchedAttributes.GetString("characterClass", (string)null);
-            if (key == null)
+
+            foreach (var it in canclasses.canCharSys.expReceiversClasses["treecutting"])
             {
-                return;
-            }
-            if (canclasses.canCharSys.expReceiversClasses["treecutting"].Contains(key))
-            {
-                canclasses.canCharSys.playersProgressInfos[(byEntity as EntityPlayer).PlayerUID].addExp(num * Config.Current.EXP_CHOPPED_LOG.Val);
-            }      
+                canclasses.canCharSys.AddExperience(num * Config.Current.EXP_CHOPPED_LOG.Val, (byEntity as EntityPlayer).Player, it);
+            }   
         }
         public static FieldInfo BlockEntityAnvilworkItemStack = typeof(BlockEntityAnvil).GetField("workItemStack", BindingFlags.NonPublic | BindingFlags.Instance);
         public static IEnumerable<CodeInstruction> Transpiler_check(IEnumerable<CodeInstruction> instructions)
@@ -274,30 +272,26 @@ namespace canclasses.src
                 if (byPlayer.Entity.Api.Side == EnumAppSide.Client)
                     return;
 
-                string key = byPlayer.Entity.WatchedAttributes.GetString("characterClass", (string)null);
-                if (key == null)
-                    return;
-                CharacterClass characterClass;
-                if (canclasses.canCharSys.characterClassesByCode.TryGetValue(key, out characterClass))
+                if(canclasses.canCharSys.playersProgressInfos.TryGetValue(byPlayer.PlayerUID, out var plProgress))
                 {
-                    if(canclasses.canCharSys.expReceiversClasses.ContainsKey("smithing") && canclasses.canCharSys.expReceiversClasses["smithing"].Contains(characterClass.Code))
+                    foreach(var it in canclasses.canCharSys.expReceiversClasses["smithing"])
                     {
-                        var plProgress = canclasses.canCharSys.playersProgressInfos[byPlayer.PlayerUID];
-                        if (plProgress != null)
-                        {
-                            if (canclasses.canCharSys.extraDurabilityReceivers.Contains(itemStack.Collectible.Code.Path.Split('-')[0]))
-                            {
-                                //itemStack.Attributes.SetInt("candurabilitybonus", plProgress.globalPercents);
-                                double pp = (1.0 + plProgress.globalPercents / 100.0);
-                                itemStack.Attributes.SetInt("durability", (int)(itemStack.Item.Durability * pp));
-                                itemStack.Attributes.SetInt("candurabilitymax", (int)(itemStack.Item.Durability * pp));
-                                itemStack.Attributes.SetInt("candurabilitybonus", plProgress.globalPercents);
-                            }
-                            canclasses.canCharSys.playersProgressInfos[byPlayer.PlayerUID].addExp(Config.Current.EXP_FORGED_TOOL.Val);
-                        }
+                        canclasses.canCharSys.AddExperience(Config.Current.EXP_FORGED_TOOL.Val, byPlayer, it);
                     }
-                    
                 }
+
+                var smithProgress = plProgress.GetSubClass(SubClassType.SMITH);
+                if (smithProgress != null)
+                {
+                    if (canclasses.canCharSys.extraDurabilityReceivers.Contains(itemStack.Collectible.Code.Path.Split('-')[0]))
+                    {
+                        double pp = (1.0 + smithProgress.PercentsReached / 100.0);
+                        itemStack.Attributes.SetInt("durability", (int)(itemStack.Item.Durability * pp));
+                        itemStack.Attributes.SetInt("candurabilitymax", (int)(itemStack.Item.Durability * pp));
+                        itemStack.Attributes.SetInt("candurabilitybonus", smithProgress.PercentsReached);
+                    }
+                }
+                                                      
                 //if player's class is smith we continue
                 //get player progress
                 //set attribute on toolhead(later we set bonus durability(during craft))
@@ -475,6 +469,32 @@ namespace canclasses.src
                         __result = false;
                     }
                 }
+            }
+        }
+        public static IEnumerable<CodeInstruction> Transpiler_randomizeSkin(IEnumerable<CodeInstruction> instructions)
+        {
+            bool found = false;
+            var codes = new List<CodeInstruction>(instructions);
+            /*var decMethod = AccessTools.GetDeclaredMethods(typeof(IWorldAccessor))
+          .Where(m => m.Name == "SpawnItemEntity" && m.GetParameters().Types().Contains(typeof(ItemStack)) && m.GetParameters().Types().Contains(typeof(Vec3d)) && m.GetParameters().Types().Contains(typeof(Vec3d))).ElementAt(0)
+         ;*/
+
+            var proxyMethod = AccessTools.Method(typeof(harmPatch), "addName");
+            for (int i = 0; i < codes.Count; i++)
+            {
+                if (!found &&
+                    codes[i].opcode == OpCodes.Callvirt && codes[i + 1].opcode == OpCodes.Ldarg_0 && codes[i + 2].opcode == OpCodes.Ldfld && codes[i - 1].opcode == OpCodes.Ldc_I4_1
+                    && codes[i - 2].opcode == OpCodes.Callvirt && codes[i - 3].opcode == OpCodes.Ldfld
+                    && codes[i - 4].opcode == OpCodes.Ldfld && codes[i - 5].opcode == OpCodes.Ldarg_0
+                    && codes[i - 6].opcode == OpCodes.Brtrue_S)
+                {
+                    var newVal = AccessTools.Method(typeof(ModLoader), "GetModSystem", new Type[] { typeof(bool) }).MakeGenericMethod(typeof(CANCharacterSystem));
+                    yield return new CodeInstruction(OpCodes.Callvirt, newVal);
+                    codes[309].operand = AccessTools.Method(typeof(CANCharacterSystem), "randomizeSkin");
+                    found = true;
+                    continue;
+                }
+                yield return codes[i];
             }
         }
     }

@@ -1,118 +1,162 @@
 ﻿[
-  {
-    "code": "handy",
-    "traits": [ "handymancopychiselblock", "charcoalminer", "clayminer", "peatminer", "clothier" ],
-    "gear": [
-      {
-        "type": "item",
-        "code": "clothes-waist-jailor-belt"
-      },
-      {
-        "type": "item",
-        "code": "clothes-foot-clockmaker-shoes"
-      },
-      {
-        "type": "item",
-        "code": "clothes-lowerbody-aristocrat-leggings"
-      },
-      {
-        "type": "item",
-        "code": "clothes-upperbody-aristocrat-shirt"
-      },
-      {
-        "type": "item",
-        "code": "clothes-shoulder-peasent-kaftan"
-      }
-    ]
-  },
-  {
-    "code": "farmer",
-    "traits": [ "wildseeds", "forlastgrain", "farmlanddroprate", "sealsecret", "sonoftheforest" ],
-    "gear": [
-      {
-        "type": "item",
-        "code": "clothes-waist-noble-sash"
-      },
-      {
-        "type": "item",
-        "code": "clothes-foot-soldier-boots"
-      },
-      {
-        "type": "item",
-        "code": "clothes-lowerbody-workmans-gown"
-      },
-      {
-        "type": "item",
-        "code": "clothes-upperbody-raw-hide-mantle"
-      },
-      {
-        "type": "item",
-        "code": "clothes-shoulder-hooded-cape"
-      },
-      {
-        "type": "item",
-        "code": "clothes-head-straw-hat"
-      }
-    ]
-  },
-  {
-    "code": "smith",
-    "traits": [ "miner", "smithdurabilitybonus", "armorrepairmaster" ],
-    "gear": [
-      {
-        "type": "item",
-        "code": "clothes-shoulder-clockmaker-apron"
-      },
-      {
-        "type": "item",
-        "code": "clothes-upperbody-homespun-shirt"
-      },
-      {
-        "type": "item",
-        "code": "clothes-lowerbody-clockmaker-pants"
-      },
-      {
-        "type": "item",
-        "code": "clothes-foot-metalcap-boots"
-      },
-      {
-        "type": "item",
-        "code": "clothes-hand-heavy-leather-gloves"
-      },
-      {
-        "type": "item",
-        "code": "clothes-waist-heavy-tool-belt"
-      }
-    ]
-  },
-  {
-    "code": "soldier",
-    "traits": [ "nothungry", "maxhealthextrapoints", "carefulwearing", "mule" ],
-    "gear": [
-      {
-        "type": "item",
-        "code": "clothes-upperbody-hunter-shirt"
-      },
-      {
-        "type": "item",
-        "code": "clothes-upperbodyover-hunter-coat"
-      },
-      {
-        "type": "item",
-        "code": "clothes-lowerbody-blackguard-leggings"
-      },
-      {
-        "type": "item",
-        "code": "clothes-foot-jailor-boots"
-      },
-      {
-        "type": "item",
-        "code": "clothes-waist-sturdy-belt"
-      },
-      {
-        "type": "item",
-        "code": "clothes-hand-forlorn-bracer"
-      }
-    ]
-  }
+    {
+        "code": "commoner",
+        "traits": [
+            "handymancopychiselblock",
+            "charcoalminer",
+            "clayminer",
+            "peatminer",
+            "clothier",
+            "wildseeds",
+            "forlastgrain",
+            "farmlanddroprate",
+            "sealsecret",
+            "sonoftheforest",
+            "miner",
+            "smithdurabilitybonus",
+            "armorrepairmaster",
+            "nothungry",
+            "maxhealthextrapoints",
+            "carefulwearing",
+            "mule"
+        ],
+        "gear": [
+            {
+                "type": "item",
+                "code": "clothes-waist-jailor-belt"
+            },
+            {
+                "type": "item",
+                "code": "clothes-foot-clockmaker-shoes"
+            },
+            {
+                "type": "item",
+                "code": "clothes-lowerbody-aristocrat-leggings"
+            },
+            {
+                "type": "item",
+                "code": "clothes-upperbody-aristocrat-shirt"
+            },
+            {
+                "type": "item",
+                "code": "clothes-shoulder-peasent-kaftan"
+            }
+        ]
+    },
+    {
+        "code": "handy",
+        "traits": [ "handymancopychiselblock", "charcoalminer", "clayminer", "peatminer", "clothier" ],
+        "gear": [
+            {
+                "type": "item",
+                "code": "clothes-waist-jailor-belt"
+            },
+            {
+                "type": "item",
+                "code": "clothes-foot-clockmaker-shoes"
+            },
+            {
+                "type": "item",
+                "code": "clothes-lowerbody-aristocrat-leggings"
+            },
+            {
+                "type": "item",
+                "code": "clothes-upperbody-aristocrat-shirt"
+            },
+            {
+                "type": "item",
+                "code": "clothes-shoulder-peasent-kaftan"
+            }
+        ]
+    },
+    {
+        "code": "farmer",
+        "traits": [ "wildseeds", "forlastgrain", "farmlanddroprate", "sealsecret", "sonoftheforest" ],
+        "gear": [
+            {
+                "type": "item",
+                "code": "clothes-waist-noble-sash"
+            },
+            {
+                "type": "item",
+                "code": "clothes-foot-soldier-boots"
+            },
+            {
+                "type": "item",
+                "code": "clothes-lowerbody-workmans-gown"
+            },
+            {
+                "type": "item",
+                "code": "clothes-upperbody-raw-hide-mantle"
+            },
+            {
+                "type": "item",
+                "code": "clothes-shoulder-hooded-cape"
+            },
+            {
+                "type": "item",
+                "code": "clothes-head-straw-hat"
+            }
+        ]
+    },
+    {
+        "code": "smith",
+        "traits": [ "miner", "smithdurabilitybonus", "armorrepairmaster" ],
+        "gear": [
+            {
+                "type": "item",
+                "code": "clothes-shoulder-clockmaker-apron"
+            },
+            {
+                "type": "item",
+                "code": "clothes-upperbody-homespun-shirt"
+            },
+            {
+                "type": "item",
+                "code": "clothes-lowerbody-clockmaker-pants"
+            },
+            {
+                "type": "item",
+                "code": "clothes-foot-metalcap-boots"
+            },
+            {
+                "type": "item",
+                "code": "clothes-hand-heavy-leather-gloves"
+            },
+            {
+                "type": "item",
+                "code": "clothes-waist-heavy-tool-belt"
+            }
+        ]
+    },
+    {
+        "code": "soldier",
+        "traits": [ "nothungry", "maxhealthextrapoints", "carefulwearing", "mule" ],
+        "gear": [
+            {
+                "type": "item",
+                "code": "clothes-upperbody-hunter-shirt"
+            },
+            {
+                "type": "item",
+                "code": "clothes-upperbodyover-hunter-coat"
+            },
+            {
+                "type": "item",
+                "code": "clothes-lowerbody-blackguard-leggings"
+            },
+            {
+                "type": "item",
+                "code": "clothes-foot-jailor-boots"
+            },
+            {
+                "type": "item",
+                "code": "clothes-waist-sturdy-belt"
+            },
+            {
+                "type": "item",
+                "code": "clothes-hand-forlorn-bracer"
+            }
+        ]
+    }
 ]

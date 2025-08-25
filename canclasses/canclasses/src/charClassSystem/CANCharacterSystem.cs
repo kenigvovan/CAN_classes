@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using Cairo;
+using canclasses.src.charClassSystem.PlayerProgression;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ProtoBuf;
 using System;
@@ -82,27 +84,28 @@ namespace canclasses.src.characterClassesSystem
 
         public List<CharacterClass> characterClasses = new List<CharacterClass>();
         public List<CANTrait> traits = new List<CANTrait>();
+        public Dictionary<string, List<string>> TraitsToSubclass = new();
 
         public Dictionary<string, CharacterClass> characterClassesByCode = new Dictionary<string, CharacterClass>();
 
         public Dictionary<string, CANTrait> TraitsByCode = new Dictionary<string, CANTrait>();
+        public Dictionary<string, SubClassType> TraitToSubClass = new();
 
         SeraphRandomizerConstraints randomizerConstraints;
         public Dictionary<string, PlayerCharacterClassProgressInfo> playersProgressInfos = new Dictionary<string, PlayerCharacterClassProgressInfo>();
         public Dictionary<string, Dictionary<string, PlayerCANTraitCraftInfo>> playersCraftTraitsInfos = new Dictionary<string, Dictionary<string, PlayerCANTraitCraftInfo>>();
         HashSet<string> traitConnectedCraftsNames = new HashSet<string>();
         Dictionary<string, string> craftNameToTraitCodeMap = new Dictionary<string, string>();
-        public Dictionary<string, Dictionary<int, double>> blockIdToExpGain = new Dictionary<string, Dictionary<int, double>>();
-        public Dictionary<string, double> killedEntityToExp = new Dictionary<string, double>();
+        public Dictionary<SubClassType, Dictionary<int, double>> blockIdToExpGain = new();
+        public Dictionary<SubClassType, Dictionary<string, double>> killedEntityToExp = new();
+        
         public HashSet<string> extraDurabilityReceivers;
         public HashSet<string> playerWasMensionedNoMoreExp;
         //way to gain exp: list of classes
-        public Dictionary<string, HashSet<string>> expReceiversClasses;
+        public Dictionary<string, HashSet<SubClassType>> expReceiversClasses;
         public static CANCharacterProgressGUI charactercProgressGui { get; set; }
 
-        int clientCurrentLevel;
-        double clientCurrentExpToNextLevel;
-        double clientAllExpToNextLevel;
+        PlayerCharacterClassProgressInfo ClientPlayerProgressInfo;
         int currentDayNumber;
         public override void Start(ICoreAPI api)
         {
@@ -151,12 +154,10 @@ namespace canclasses.src.characterClassesSystem
             api.Network.GetChannel("cancharactersystem").SetMessageHandler<CANCharacterProgressInfoPacket>((packet) =>
             {
                 {
-                    this.clientCurrentLevel = packet.currentLevel;
-                    this.clientCurrentExpToNextLevel = packet.currentExpToNextLevel;
-                    this.clientAllExpToNextLevel = packet.allExpToNextLevel;
+                    ClientPlayerProgressInfo = packet.playerCharacterClassProgressInfo;
                     if (packet.packetType == EnumCANCharacterProgressInfoPacket.NewLevel)
                     {
-                        api.World.Player.ShowChatNotification(Lang.Get("canclasses:new_level_achieved", clientCurrentLevel));
+                        api.World.Player.ShowChatNotification(Lang.Get("canclasses:new_level_achieved", packet.subClassTypeNewLevel));
                         //write to player about new level
                     }
                 }
@@ -170,8 +171,32 @@ namespace canclasses.src.characterClassesSystem
 
         private void composeTraitsTab(GuiComposer compo)
         {
-            compo
-                .AddRichtext(getClassTraitText(), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15), ElementBounds.Fixed(0, 25, 385, 200));
+            var mainBounds = ElementBounds.Fixed(0.0, 35.0, 355.0, 250);
+            var textBounds = mainBounds.FlatCopy();
+            mainBounds.Alignment = EnumDialogArea.LeftTop;
+            ElementBounds scrollbarBounds = textBounds.CopyOffsetedSibling(textBounds.fixedWidth + 7, -32).WithFixedWidth(20);
+            compo.AddInset(textBounds);
+            //compo.AddRichtext("hello", CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15).WithFontSize(16), mainBounds);
+            compo.BeginChildElements(mainBounds)
+                .BeginClip(textBounds);
+
+            var sb = getClassTraitText();
+            compo.AddRichtext(sb.ToString(), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15).WithFontSize(16), ElementBounds.Fixed(0.0, 35.0, 350.0, 250), "credits")
+            //.AddRichtext("hello", CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15).WithFontSize(16), ElementBounds.Fixed(0.0, 25.0 + 10, 100.0, 50))
+            .EndClip()
+            .AddVerticalScrollbar(new Action<float>(delegate (float value)
+            {
+                ElementBounds bounds = compo.GetRichtext("credits").Bounds;
+                bounds.fixedY = (double)(10f - value);
+                bounds.CalcWorldBounds();
+            }), scrollbarBounds, "scrollbar")
+            .EndChildElements();
+            TextExtents textExtents = CairoFont.WhiteDetailText().GetTextExtents("");
+            //currentBounds.fixedWidth = textExtents.Width;
+            compo.GetScrollbar("scrollbar").SetHeights((float)textBounds.fixedHeight, (float)50 * 25);
+            compo.GetScrollbar("scrollbar").SetScrollbarPosition(10);
+           // compo
+           //   .AddRichtext(getClassTraitText(), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15), ElementBounds.Fixed(0, 25, 385, 200));
         }
         string getClassTraitText()
         {
@@ -202,19 +227,31 @@ namespace canclasses.src.characterClassesSystem
                             }
                             if (!wasFound)
                             {
-                                this.capi.World.Player.Entity.Stats.Set(it.Key, "trait", 0);
+                                this.capi.World.Player.Entity.Stats.Set(it.Key, "trait-" + trait.Code, 0);
                             }
                             //stringBuilder1.Append(ifExists).Append(" ");//trait-
-                            if (this.capi.World.Player.Entity.Stats[it.Key].ValuesByKey.TryGetValue("trait", out var val))
+                            if (this.capi.World.Player.Entity.Stats[it.Key].ValuesByKey.TryGetValue("trait-" + trait.Code, out var val))
                             {
                                 stringBuilder1.Append(Lang.Get("charattribute-" + it.Key));
                                 if (it.Key.Equals("maxhealthExtraPoints") || it.Key.Equals("weightmodweightbonus"))
                                 {
-                                    stringBuilder1.Append("(").Append((val.Value)).Append(")");
+                                    stringBuilder1.Append(" (").Append((val.Value)).Append(")");
                                 }
                                 else
                                 {
-                                    stringBuilder1.Append("(").Append((val.Value * 100)).Append("%)");
+                                    stringBuilder1.Append(" (").Append((val.Value * 100)).Append("%)");
+                                }
+                            }
+                            else
+                            {
+                                stringBuilder1.Append(Lang.Get("charattribute-" + it.Key));
+                                if (it.Key.Equals("maxhealthExtraPoints") || it.Key.Equals("weightmodweightbonus"))
+                                {
+                                    stringBuilder1.Append(" (").Append("x").Append(")");
+                                }
+                                else
+                                {
+                                    stringBuilder1.Append(" (").Append("x").Append("%)");
                                 }
                             }
                             stringBuilder1.Append("\n");
@@ -227,9 +264,13 @@ namespace canclasses.src.characterClassesSystem
                 {
                     stringBuilder1.Append(Lang.Get("trait-" + trait.Code)).Append("\n");
                     stringBuilder1.Append(Lang.Get("traitdesc-" + trait.Code)).Append("\n");
+                    if(!TraitToSubClass.TryGetValue(trait.Code, out SubClassType subClassType))
+                    {
+                        continue;
+                    }
                     foreach (var it in trait.Attributes.Values.ElementAt(0))
                     {
-                        if (it.Key > clientCurrentLevel)
+                        if (it.Key > ClientPlayerProgressInfo.GetSubClass(subClassType).PercentsReached)
                         {
                             continue;
                         }
@@ -256,6 +297,7 @@ namespace canclasses.src.characterClassesSystem
         {
             onLoadedUniversal();
             this.traits = this.api.Assets.Get("canclasses:config/traits.json").ToObject<List<CANTrait>>();
+            this.TraitsToSubclass = this.api.Assets.Get("canclasses:config/traits_to_subclass.json").ToObject<Dictionary<string, List<string>>>();
             this.characterClasses = this.api.Assets.Get("canclasses:config/characterclasses.json").ToObject<List<CharacterClass>>();
             foreach (CANTrait trait in this.traits)
                 this.TraitsByCode[trait.Code] = trait;
@@ -290,119 +332,6 @@ namespace canclasses.src.characterClassesSystem
                 }
             }*/
         }
-       /* private void LoadTraits()
-        {
-            traits = new List<CANTrait>();
-            Dictionary<AssetLocation, JToken> files = api.Assets.GetMany<JToken>(api.Logger, "config/traits");
-            int traitQuantity = 0;
-
-            string[] vanillaTraitsInOrder = ["focused", "resourceful", "fleetfooted", "bowyer", "forager", "pilferer", "furtive",
-                "precise", "technical", "soldier", "hardy", "clothier", "mender", "merciless", "farsighted", "claustrophobic",
-                "frail", "nervous", "ravenous", "nearsighted", "heavyhanded", "kind", "weak", "civil", "improviser", "tinkerer"];
-            HashSet<string> vanillaTraits = vanillaTraitsInOrder.ToHashSet();
-
-            foreach ((AssetLocation path, JToken fileToken) in files)
-            {
-                if (fileToken is JObject)
-                {
-                    Trait trait = fileToken.ToObject<Trait>(path.Domain);
-                    if (traits.Find(element => element.Code == trait.Code) != null)
-                    {
-                        api.World.Logger.Warning($"Trying to add character trait from domain '{path.Domain}', but character trait with code '{trait.Code}' already exists. Will add it anyway, but it can cause undefined behavior.");
-                    }
-                    traits.Add(trait);
-                    traitQuantity++;
-                }
-                if (fileToken is JArray fileArray)
-                {
-                    int traitIndex = 0;
-                    foreach (JToken traitToken in fileArray)
-                    {
-                        Trait trait = traitToken.ToObject<Trait>(path.Domain);
-                        if (traits.Find(element => element.Code == trait.Code) != null)
-                        {
-                            api.World.Logger.Warning($"Trying to add character trait from domain '{path.Domain}', but character trait with code '{trait.Code}' already exists. Will add it anyway, but it can cause undefined behavior.");
-                        }
-                        if (path.Domain == "game")
-                        {
-                            vanillaTraits.Remove(trait.Code);
-                            if (vanillaTraitsInOrder.IndexOf(trait.Code) != traitIndex)
-                            {
-                                api.World.Logger.Warning($"Order of vanilla character traits has changed. Dont remove vanilla character traits or add new traits between or before vanilla traits. That will cause incompatibility with other mods that change traits, that can result in crashes.");
-                            }
-                        }
-                        traits.Add(trait);
-                        traitQuantity++;
-                        traitIndex++;
-                    }
-                }
-            }
-
-            if (vanillaTraits.Count > 0)
-            {
-                api.World.Logger.Warning($"Failed to find vanilla traits: {vanillaTraits.Aggregate((a, b) => $"{a}, {b}")}, dont remove vanilla traits, it will cause incompatibility with other mods that change traits or classes, that can result in crashes.");
-            }
-
-            api.World.Logger.Event($"{traitQuantity} traits loaded from {files.Count} files");
-        }
-
-        private void LoadClasses()
-        {
-            characterClasses = [];
-            Dictionary<AssetLocation, JToken> files = api.Assets.GetMany<JToken>(api.Logger, "config/characterclasses");
-            int classQuantity = 0;
-
-            string[] vanillaClassesInOrder = ["commoner", "hunter", "malefactor", "clockmaker", "blackguard", "tailor"];
-            HashSet<string> vanillaClasses = [.. vanillaClassesInOrder];
-
-            foreach ((AssetLocation path, JToken file) in files)
-            {
-                if (file is JObject)
-                {
-                    CharacterClass characterClass = file.ToObject<CharacterClass>(path.Domain);
-                    if (!characterClass.Enabled) continue;
-                    if (characterClasses.Find(element => element.Code == characterClass.Code) != null)
-                    {
-                        api.World.Logger.Warning($"Trying to add character class from domain '{path.Domain}', but character class with code '{characterClass.Code}' already exists. Will add it anyway, but it can cause undefined behavior.");
-                    }
-                    characterClasses.Add(characterClass);
-                    classQuantity++;
-                }
-                if (file is JArray fileArray)
-                {
-                    int classIndex = 0;
-                    foreach (JToken classToken in fileArray)
-                    {
-                        CharacterClass characterClass = classToken.ToObject<CharacterClass>(path.Domain);
-                        if (!characterClass.Enabled) continue;
-                        if (characterClasses.Find(element => element.Code == characterClass.Code) != null)
-                        {
-                            api.World.Logger.Warning($"Trying to add character class from domain '{path.Domain}', but character class with code '{characterClass.Code}' already exists. Will add it anyway, but it can cause undefined behavior.");
-                        }
-                        if (path.Domain == "game")
-                        {
-                            vanillaClasses.Remove(characterClass.Code);
-                            if (vanillaClassesInOrder.IndexOf(characterClass.Code) != classIndex)
-                            {
-                                api.World.Logger.Warning($"Order of vanilla character classes has changed. Dont remove vanilla character classes (set 'enabled' attribute to 'false' instead) or add new classes between or before vanilla classes. That will cause incompatibility with other mods that change classes, that can result in crashes.");
-                            }
-                        }
-                        characterClasses.Add(characterClass);
-                        classQuantity++;
-                        classIndex++;
-                    }
-                }
-            }
-
-            if (vanillaClasses.Count > 0)
-            {
-                api.World.Logger.Warning($"Failed to find vanilla classes: {vanillaClasses.Aggregate((a, b) => $"{a}, {b}")}, dont remove vanilla classes (set 'enabled' attribute to 'false' instead), it will cause incompatibility with other mods that change classes, that can result in crashes.");
-            }
-
-            api.World.Logger.Event($"{classQuantity} classes loaded from {files.Count} files");
-        }
-       */
-
         public void setCharacterClass(EntityPlayer eplayer, string classCode, bool initializeGear = true)
         {
             CharacterClass charclass = characterClasses.FirstOrDefault(c => c.Code == classCode);
@@ -467,140 +396,8 @@ namespace canclasses.src.characterClassesSystem
                 }
             }
 
-            applyTraitAttributes(eplayer);
-        }
-        private void applyTraitAttributes(EntityPlayer eplr)
-        {
-            string classcode = eplr.WatchedAttributes.GetString("characterClass", (string)null);
-            CharacterClass characterClass = this.characterClasses.FirstOrDefault<CharacterClass>((System.Func<CharacterClass, bool>)(c => c.Code == classcode));
-            if (characterClass == null)
-                throw new ArgumentException("Not a valid character class code!");
-            foreach (KeyValuePair<string, EntityFloatStats> stat in eplr.Stats)
-            {
-                foreach (KeyValuePair<string, EntityStat<float>> keyValuePair in stat.Value.ValuesByKey)
-                {
-                    if (keyValuePair.Key == "trait")
-                    {
-                        stat.Value.Remove(keyValuePair.Key);
-                        break;
-                    }
-                }
-            }
-            string[] stringArray = eplr.WatchedAttributes.GetStringArray("extraTraits");
-            foreach (string key1 in stringArray == null ? (IEnumerable<string>)characterClass.Traits : ((IEnumerable<string>)characterClass.Traits).Concat<string>((IEnumerable<string>)stringArray))
-            {
-
-                double playerProgress = this.clientCurrentLevel;
-                if (canclasses.sapi != null)
-                {
-                    this.playersProgressInfos.TryGetValue(eplr.PlayerUID, out PlayerCharacterClassProgressInfo playerLevel);
-                    if (playerLevel == null)
-                    {
-                        this.playersProgressInfos[eplr.PlayerUID] = new PlayerCharacterClassProgressInfo(classcode, eplr.PlayerUID);
-                        playerLevel = this.playersProgressInfos[eplr.PlayerUID];
-                    }
-                    playerProgress = playerLevel.globalPercents;
-                }
-
-                CANTrait trait;
-                if (this.TraitsByCode.TryGetValue(key1, out trait))
-                {
-                    if (trait.ApplyType == EnumTraitApplyType.PerPercentAttributeApply)
-                    {
-                        foreach (KeyValuePair<string, Dictionary<double, double>> attributeDict in trait.Attributes)
-                        {
-                            foreach (var it in attributeDict.Value)
-                            {
-                                if (it.Key > playerProgress)
-                                {
-                                    continue;
-                                }
-                                string key2 = attributeDict.Key;
-                                double num = attributeDict.Value[it.Key];
-                                eplr.Stats.Set(key2, "trait", (float)num, true);
-                                break;
-                            }
-                        }
-                    }
-                    else if (trait.ApplyType == EnumTraitApplyType.OnceAttributeApply)
-                    {
-                        foreach (KeyValuePair<string, Dictionary<double, double>> attributeDict in trait.Attributes)
-                        {
-                            string key2 = attributeDict.Key;
-                            foreach (KeyValuePair<double, double> it in attributeDict.Value)
-                            {
-                                if (it.Key <= playerProgress)
-                                {
-                                    double num = it.Value;
-                                    eplr.Stats.Set(key2, "trait", (float)num, true);
-
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    else if (trait.ApplyType == EnumTraitApplyType.CraftWithResetTime)
-                    {
-                        if (canclasses.sapi == null)
-                        {
-                            continue;
-                        }
-                        this.playersCraftTraitsInfos.TryGetValue(eplr.PlayerUID, out var DictPlCANTrInfo);
-
-                        if (DictPlCANTrInfo == null)
-                        {
-                            DictPlCANTrInfo = new Dictionary<string, PlayerCANTraitCraftInfo>();
-                            int possibleCrafts = 0;
-                            foreach (var it in trait.Attributes["possibleCraftsPerReset"])
-                            {
-                                if (it.Key <= playerProgress)
-                                {
-                                    possibleCrafts = (int)it.Value;
-                                    break;
-                                }
-                            }
-
-                            DictPlCANTrInfo.Add(trait.additionalInfo["craftName"].ToString(), new PlayerCANTraitCraftInfo(trait.Code, possibleCrafts, long.Parse(trait.additionalInfo["resetInterval"].ToString())));
-                            playersCraftTraitsInfos.Add(eplr.PlayerUID, DictPlCANTrInfo);
-
-                        }
-                        else
-                        {
-                            if (canclasses.sapi == null)
-                            {
-                                continue;
-                            }
-                            if (DictPlCANTrInfo.ContainsKey(trait.additionalInfo["craftName"].ToString()))
-                            {
-                                continue;
-                            }
-                            int possibleCrafts = 0;
-                            foreach (var it in trait.Attributes["possibleCraftsPerReset"])
-                            {
-                                if (it.Key <= playerProgress)
-                                {
-                                    possibleCrafts = (int)it.Value;
-                                    break;
-                                }
-                            }
-                            DictPlCANTrInfo[trait.additionalInfo["craftName"].ToString()] = new PlayerCANTraitCraftInfo(trait.Code, possibleCrafts, long.Parse(trait.additionalInfo["resetInterval"].ToString()));
-                            //we have info for trait if class was set before
-                            /* if (DictPlCANTrInfo.TryGetValue(trait.additionalInfo["craftName"].ToString(), out var PlCANTrInfo))
-                                {
-
-                                }
-                                else
-                                { 
-
-                                }*/
-                        }
-
-                    }
-                }
-            }
-            eplr.GetBehavior<EntityBehaviorHealth>()?.MarkDirty();
-        }
-      
+            ReapplyTraitsForAllSubclasses(eplayer.Player);
+        }           
         private TextCommandResult onCharSelCmd(TextCommandCallingArgs textCommandCallingArgs)
         {
             var allowcharselonce = capi.World.Player.Entity.WatchedAttributes.GetBool("allowcharselonce") || capi.World.Player.WorldData.CurrentGameMode == EnumGameMode.Creative;
@@ -718,17 +515,18 @@ namespace canclasses.src.characterClassesSystem
 
             this.traitConnectedCraftsNames = this.api.Assets.Get("config/traitconnectedcraftnames.json").ToObject<HashSet<string>>();
             this.craftNameToTraitCodeMap = this.api.Assets.Get("config/craftnametotraitcodemap.json").ToObject<Dictionary<string, string>>();
-            this.expReceiversClasses = this.api.Assets.Get("config/classtoexpgainways.json").ToObject<Dictionary<string, HashSet<string>>>();
+            this.expReceiversClasses = this.api.Assets.Get("canclasses:config/classtoexpgainways.json").ToObject<Dictionary<string, HashSet<SubClassType>>>();
 
             //Load exp values for entity killed, block broken
-            killedEntityToExp = this.api.Assets.Get("config/killedentitytoexp.json").ToObject<Dictionary<string, double>>();
-            Dictionary<string, Dictionary<string, double>> tmpIdExp = this.api.Assets.Get("config/blocknametoexpgain.json").ToObject<Dictionary<string, Dictionary<string, double>>>();
+            killedEntityToExp = this.api.Assets.Get("config/killedentitytoexp.json").ToObject<Dictionary<SubClassType, Dictionary<string, double>>>();
+            Dictionary<SubClassType, Dictionary<string, double>> tmpIdExp = this.api.Assets.Get("canclasses:config/blocknametoexpgain.json").ToObject<Dictionary<SubClassType, Dictionary<string, double>>>();
             foreach (var itCode in tmpIdExp)
             {
                 this.blockIdToExpGain.Add(itCode.Key, new Dictionary<int, double>());
             }
             foreach (var dictByClass in tmpIdExp)
             {
+                var dictKey = dictByClass.Key;
                 foreach (var it in api.World.Blocks)
                 {
                     foreach (var tmpBlock in dictByClass.Value)
@@ -736,7 +534,7 @@ namespace canclasses.src.characterClassesSystem
                         string[] stripped = tmpBlock.Key.Split(':');
                         if (it.Code != null && it.Code.Domain.Equals(stripped[0]) && it.Code.Path.Contains(stripped[1]))
                         {
-                            this.blockIdToExpGain[dictByClass.Key].Add(it.BlockId, tmpBlock.Value);
+                            this.blockIdToExpGain[dictKey].Add(it.BlockId, tmpBlock.Value);
                             break;
                         }
                     }
@@ -900,57 +698,9 @@ namespace canclasses.src.characterClassesSystem
             if (p.DidSelect)
             {
                 string charClass = fromPlayer.Entity.WatchedAttributes.GetString("characterClass", (string)null);
-                if (charClass != null)
+                if (charClass == null)
                 {
-                    var oldProgressDict = canclasses.sapi.WorldManager.SaveGame.GetData("cansavedoldplayercharacterclassprogressinfos");
-                    if (oldProgressDict != null)
-                    {
-                        var dictsPlayersOldProgress = SerializerUtil.Deserialize<Dictionary<string, Dictionary<string, PlayerCharacterClassProgressInfo>>>(oldProgressDict);
-                        if (dictsPlayersOldProgress.TryGetValue(fromPlayer.PlayerUID, out Dictionary<string, PlayerCharacterClassProgressInfo> dictPlayerOldClassesProgressInfos))
-                        {
-                            //if for this player we have old classes progresses
-                            //does it have class we set now?
-                            if (dictPlayerOldClassesProgressInfos.ContainsKey(p.CharacterClass))
-                            {
-
-                                if (dictsPlayersOldProgress[fromPlayer.PlayerUID].ContainsKey(charClass))
-                                {
-                                    dictsPlayersOldProgress[fromPlayer.PlayerUID][charClass] = canclasses.canCharSys.playersProgressInfos[fromPlayer.PlayerUID];
-                                    (this.api as ICoreServerAPI).WorldManager.SaveGame.StoreData("cansavedoldplayercharacterclassprogressinfos", SerializerUtil.Serialize(dictsPlayersOldProgress));
-                                }
-                                if (dictPlayerOldClassesProgressInfos[p.CharacterClass].classCode == null)
-                                {
-                                    dictPlayerOldClassesProgressInfos[p.CharacterClass].classCode = p.CharacterClass;
-                                }
-                                canclasses.canCharSys.playersProgressInfos[fromPlayer.PlayerUID] = dictPlayerOldClassesProgressInfos[p.CharacterClass];
-                            }
-                            else
-                            {
-                                if (dictsPlayersOldProgress[fromPlayer.PlayerUID].ContainsKey(charClass))
-                                {
-                                    dictsPlayersOldProgress[fromPlayer.PlayerUID][charClass] = canclasses.canCharSys.playersProgressInfos[fromPlayer.PlayerUID];
-                                }
-                                else
-                                {
-                                    dictsPlayersOldProgress[fromPlayer.PlayerUID].Add(charClass, canclasses.canCharSys.playersProgressInfos[fromPlayer.PlayerUID]);
-                                }
-                                (this.api as ICoreServerAPI).WorldManager.SaveGame.StoreData("cansavedoldplayercharacterclassprogressinfos", SerializerUtil.Serialize(dictsPlayersOldProgress));
-                                canclasses.canCharSys.playersProgressInfos[fromPlayer.PlayerUID] = new PlayerCharacterClassProgressInfo(p.CharacterClass, fromPlayer.PlayerUID);
-                            }
-
-                        }
-                        else
-                        {
-
-                            dictsPlayersOldProgress.Add(fromPlayer.PlayerUID, new Dictionary<string, PlayerCharacterClassProgressInfo> { { charClass, canclasses.canCharSys.playersProgressInfos[fromPlayer.PlayerUID].DeepCopy() } });
-                            (this.api as ICoreServerAPI).WorldManager.SaveGame.StoreData("cansavedoldplayercharacterclassprogressinfos", SerializerUtil.Serialize(dictsPlayersOldProgress));
-                            canclasses.canCharSys.playersProgressInfos[fromPlayer.PlayerUID] = new PlayerCharacterClassProgressInfo(p.CharacterClass, fromPlayer.PlayerUID);
-                        }
-                    }
-                }
-                else
-                {
-                    canclasses.canCharSys.playersProgressInfos[fromPlayer.PlayerUID] = new PlayerCharacterClassProgressInfo(p.CharacterClass, fromPlayer.PlayerUID);
+                    canclasses.canCharSys.playersProgressInfos[fromPlayer.PlayerUID] = new PlayerCharacterClassProgressInfo(fromPlayer.PlayerUID);
                 }
 
                 fromPlayer.SetModData<bool>("createCharacter", true);
@@ -1074,12 +824,6 @@ namespace canclasses.src.characterClassesSystem
 
         }
 
-        
-
-        
-
-       
-
         //Reset levels player got this day
         private void updateProgressWhichDay()
         {
@@ -1087,11 +831,15 @@ namespace canclasses.src.characterClassesSystem
             currentDayNumber = DateTime.Today.DayOfYear;
             foreach (var it in playersProgressInfos)
             {
-                if(it.Value.whichDay != currentDayNumber)
+                foreach(var subClass in it.Value.subClasses.Values)
                 {
-                    it.Value.whichDay = currentDayNumber;
-                    it.Value.levelsGotThisDay = 0;
+                    if (subClass.WhichDay != currentDayNumber)
+                    {
+                        subClass.WhichDay = currentDayNumber;
+                        subClass.LevelsGotThisDay = 0;
+                    }
                 }
+               
             }
         }
 
@@ -1102,15 +850,15 @@ namespace canclasses.src.characterClassesSystem
                 if(this.playersProgressInfos.TryGetValue(pl.PlayerUID, out var info))
                 {
                     if(info == null)
-                    { continue; }
+                    { 
+                        continue; 
+                    }
                     canclasses.sapi.Network.GetChannel("cancharactersystem").SendPacket<CANCharacterProgressInfoPacket>(new CANCharacterProgressInfoPacket()
                     {
-                        currentLevel = info.globalPercents,
-                        currentExpToNextLevel = info.expToNextPercent,
-                        packetType = EnumCANCharacterProgressInfoPacket.InfoUpdate,
-                        allExpToNextLevel = info.expToNextPercentAll
+                        playerCharacterClassProgressInfo = info,
+                        packetType = EnumCANCharacterProgressInfoPacket.InfoUpdate
                     }, pl as IServerPlayer
-            );
+                    );
                 }
             }
         }
@@ -1130,15 +878,155 @@ namespace canclasses.src.characterClassesSystem
         }
         private void composeProgressTab(GuiComposer compo)
         {
-            compo.AddRichtext(Lang.Get("canclasses:can-level", this.clientCurrentLevel.ToString()), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15).WithFontSize(16), ElementBounds.Fixed(0.0, 25.0, 385.0, 200.0));
-            compo.AddRichtext(Lang.Get("canclasses:can-curexp-allexp", String.Format("{0:0.0}",this.clientAllExpToNextLevel - this.clientCurrentExpToNextLevel), this.clientAllExpToNextLevel.ToString()), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15).WithFontSize(16), ElementBounds.Fixed(0.0, 55.0, 385.0, 200.0));
+            //compo.AddRichtext(Lang.Get("canclasses:can-level", this.clientCurrentLevel.ToString()), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15).WithFontSize(16), ElementBounds.Fixed(0.0, 25.0, 385.0, 200.0));
+            //compo.AddRichtext(Lang.Get("canclasses:can-curexp-allexp", String.Format("{0:0.0}",this.clientAllExpToNextLevel - this.clientCurrentExpToNextLevel), this.clientAllExpToNextLevel.ToString()), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15).WithFontSize(16), ElementBounds.Fixed(0.0, 55.0, 385.0, 200.0));
         }
         
 
-        
+        private void ReapplyTraitsForAllSubclasses(IPlayer player)
+        {
+            if(this.playersProgressInfos.TryGetValue(player.PlayerUID, out var info))
+            {
+                foreach(var subClass in info.subClasses)
+                {
+                    ReapplyTraits(player, subClass.Key);
+                }
+            }
+        }
 
-       
-       
+        public void ReapplyTraits(IPlayer player, SubClassType subClass)
+        {
+            if(!this.playersProgressInfos.TryGetValue(player.PlayerUID, out var info))
+            {
+                return;
+            }
+            PlayerSubClass playerSubClassInfo = info.GetSubClass(subClass);
+            EntityPlayer eplr = player.Entity;
+            string[] stringArray = eplr.WatchedAttributes.GetStringArray("extraTraits");
+            foreach (string key1 in stringArray == null ? (IEnumerable<string>)playerSubClassInfo.AccuredTraits : ((IEnumerable<string>)playerSubClassInfo.AccuredTraits).Concat<string>((IEnumerable<string>)stringArray))
+            {
+                double playerProgress = playerSubClassInfo.PercentsReached;
+                CANTrait trait;
+                if (this.TraitsByCode.TryGetValue(key1, out trait))
+                {
+                    if (trait.ApplyType == EnumTraitApplyType.PerPercentAttributeApply)
+                    {
+                        foreach (KeyValuePair<string, Dictionary<double, double>> attributeDict in trait.Attributes)
+                        {
+                            foreach (var it in attributeDict.Value)
+                            {
+                                if (it.Key > playerProgress)
+                                {
+                                    continue;
+                                }
+                                string key2 = attributeDict.Key;
+                                double num = attributeDict.Value[it.Key];
+                                eplr.Stats.Set(key2, "trait-" + trait.Code, (float)num, true);
+                                break;
+                            }
+                        }
+                    }
+                    else if (trait.ApplyType == EnumTraitApplyType.OnceAttributeApply)
+                    {
+                        foreach (KeyValuePair<string, Dictionary<double, double>> attributeDict in trait.Attributes)
+                        {
+                            string key2 = attributeDict.Key;
+                            foreach (KeyValuePair<double, double> it in attributeDict.Value)
+                            {
+                                if (it.Key <= playerProgress)
+                                {
+                                    double num = it.Value;
+                                    eplr.Stats.Set(key2, "trait-" + trait.Code, (float)num, true);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else if (trait.ApplyType == EnumTraitApplyType.CraftWithResetTime)
+                    {
+                        if (canclasses.sapi.Side != EnumAppSide.Server)
+                        {
+                            continue;
+                        }
+                        this.playersCraftTraitsInfos.TryGetValue(eplr.PlayerUID, out var DictPlCANTrInfo);
+
+                        if (DictPlCANTrInfo == null)
+                        {
+                            DictPlCANTrInfo = new Dictionary<string, PlayerCANTraitCraftInfo>();
+                            int possibleCrafts = 0;
+                            foreach (var it in trait.Attributes["possibleCraftsPerReset"])
+                            {
+                                if (it.Key <= playerProgress)
+                                {
+                                    possibleCrafts = (int)it.Value;
+                                    break;
+                                }
+                            }
+
+                            DictPlCANTrInfo[trait.additionalInfo["craftName"].ToString()] = new PlayerCANTraitCraftInfo(trait.Code, possibleCrafts, long.Parse(trait.additionalInfo["resetInterval"].ToString()));
+                            playersCraftTraitsInfos.Add(eplr.PlayerUID, DictPlCANTrInfo);
+                        }
+                        else
+                        {
+                            int possibleCrafts = 0;
+                            foreach (var it in trait.Attributes["possibleCraftsPerReset"])
+                            {
+                                if (it.Key <= playerProgress)
+                                {
+                                    possibleCrafts = (int)it.Value;
+                                    break;
+                                }
+                            }
+                            if (DictPlCANTrInfo.ContainsKey(trait.additionalInfo["craftName"].ToString()))
+                            {
+                                DictPlCANTrInfo[trait.additionalInfo["craftName"].ToString()].possibleCraftsPerReset = possibleCrafts;
+                                continue;
+                            }
+                            DictPlCANTrInfo[trait.additionalInfo["craftName"].ToString()] = new PlayerCANTraitCraftInfo(trait.Code, possibleCrafts, long.Parse(trait.additionalInfo["resetInterval"].ToString()));
+                        }
+
+                    }
+                }
+                foreach(var tr in this.TraitsToSubclass)
+                {
+                    if (tr.Key.Equals(subClass))
+                    {
+                        foreach(var it in tr.Value)
+                        {
+                            if (this.TraitsByCode.TryGetValue(it, out trait) && trait.ApplyType == EnumTraitApplyType.OnceAttributeAddition)
+                            {
+                                if(trait.additionalInfo.TryGetValue("needLevel", out object needLevel))
+                                {
+                                    if(playerSubClassInfo.PercentsReached >= (int)needLevel)
+                                    {
+                                        if (stringArray != null)
+                                        {
+                                            stringArray = stringArray.Append(trait.Code);
+                                            eplr.WatchedAttributes.SetStringArray("extraTraits", stringArray);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            eplr.GetBehavior<EntityBehaviorHealth>()?.MarkDirty();
+        }
+        public void AddExperience(double val, IPlayer player, SubClassType subClass)
+        {
+            if (canclasses.sapi.Side != EnumAppSide.Server)
+            {
+                return;
+            }
+            if (!this.playersProgressInfos.TryGetValue(player.PlayerUID, out PlayerCharacterClassProgressInfo playerLevel))
+            {
+                this.playersProgressInfos[player.PlayerUID] = new PlayerCharacterClassProgressInfo(player.PlayerUID);
+            }
+                      
+            playerLevel.addExp(val, subClass);
+            
+        }
 
         public void reapplyTraitsNewPercent(EntityPlayer eplr, int newPercent, string classCode)
         {
@@ -1175,7 +1063,7 @@ namespace canclasses.src.characterClassesSystem
                                 }
                                 string key2 = attributeDict.Key;
                                 double num = attributeDict.Value[it.Key];
-                                eplr.Stats.Set(key2, "trait", (float)num, true);
+                                eplr.Stats.Set(key2, "trait-" + trait.Code, (float)num, true);
                                 break;
                             }
                         }
@@ -1190,7 +1078,7 @@ namespace canclasses.src.characterClassesSystem
                                 if (it.Key <= playerProgress)
                                 {
                                     double num = it.Value;
-                                    eplr.Stats.Set(key2, "trait", (float)num, true);
+                                    eplr.Stats.Set(key2, "trait-" + trait.Code, (float)num, true);
                                     break;
                                 }
                             }
@@ -1258,30 +1146,17 @@ namespace canclasses.src.characterClassesSystem
             }
             else
             {
-                if (this.blockIdToExpGain[classcode].TryGetValue(oldblockId, out var expVal))
+                foreach(var it in this.blockIdToExpGain)
                 {
-                    this.playersProgressInfos[byPlayer.PlayerUID].addExp(expVal);
+                    if(it.Value.TryGetValue(oldblockId, out var expVal))
+                    {
+                        canclasses.canCharSys.AddExperience(expVal, byPlayer, it.Key);
+                    }
                 }
             }
             
         }
       
-        private void randomizeSkin(IServerPlayer byPlayer)
-        {
-            EntityBehaviorExtraSkinnable behavior = byPlayer.Entity.GetBehavior<EntityBehaviorExtraSkinnable>();
-            foreach (SkinnablePart availableSkinPart in behavior.AvailableSkinParts)
-            {
-                int index = this.api.World.Rand.Next(availableSkinPart.Variants.Length);
-                if ((availableSkinPart.Code == "mustache" || availableSkinPart.Code == "beard") && this.api.World.Rand.NextDouble() < 0.5)
-                    index = 0;
-                string code = availableSkinPart.Variants[index].Code;
-                behavior.selectSkinPart(availableSkinPart.Code, code);
-            }
-        }
-
-       
-
-       
 
 
         void updateCraftsTimer()

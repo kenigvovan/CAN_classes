@@ -11,6 +11,7 @@ namespace canclasses.src.characterClassesSystem
         OnceAttributeApply,
         PerPercentAttributeApply,
         CraftWithResetTime,
-        NoAppliance
+        NoAppliance,
+        OnceAttributeAddition
     }
 }

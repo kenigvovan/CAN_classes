@@ -11,6 +11,8 @@ using Vintagestory.API.Server;
 using canclasses.src.characterClassesSystem;
 using System.Linq;
 using System;
+using canclasses.src.charClassSystem.PlayerProgression;
+using Vintagestory.GameContent;
 
 namespace canclasses.src
 {
@@ -72,6 +74,8 @@ namespace canclasses.src
             harmonyInstance.Patch(typeof(Vintagestory.GameContent.BlockEntityChisel).GetMethod("UpdateVoxel", BindingFlags.NonPublic | BindingFlags.Instance), transpiler: new HarmonyMethod(typeof(harmPatch).GetMethod("Transpiler_UpdateVoxel_BlockEntityChiselstatic")));
 
             harmonyInstance.Patch(typeof(Vintagestory.GameContent.ItemShears).GetMethod("breakMultiBlock", BindingFlags.NonPublic | BindingFlags.Instance), prefix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_OnBlockBrokenWith_ItemShears")));
+
+            harmonyInstance.Patch(typeof(Vintagestory.GameContent.EntityBehaviorExtraSkinnable).GetMethod("Initialize"), transpiler: new HarmonyMethod(typeof(harmPatch).GetMethod("Transpiler_randomizeSkin")));
 
             canCharSys = api.ModLoader.GetModSystem<CANCharacterSystem>();
             canCharSys = api.ModLoader.GetModSystem<CANCharacterSystem>();
@@ -135,18 +139,12 @@ namespace canclasses.src
                             return;
                         }
                     }
-                    if (!canCharSys.killedEntityToExp.TryGetValue(entity.Code.Path, out var expVal))
+                    foreach (var it in canCharSys.killedEntityToExp)
                     {
-                        return;
-                    }
-                    string key = damageSource.SourceEntity.WatchedAttributes.GetString("characterClass", null);
-                    if (key == null)
-                    {
-                        return;
-                    }
-                    if (canCharSys.expReceiversClasses["entitieskilling"].Contains(key))
-                    {
-                        canCharSys.playersProgressInfos[(damageSource.SourceEntity as EntityPlayer).PlayerUID].addExp(expVal);
+                        if (it.Value.TryGetValue(entity.Code.Path, out var expVal))
+                        {
+                            canclasses.canCharSys.AddExperience(expVal, (damageSource.SourceEntity as EntityPlayer).Player, it.Key);
+                        }
                     }
                 }
             }
@@ -201,7 +199,7 @@ namespace canclasses.src
                     player.SendMessage(GlobalConstants.GeneralChatGroup, "more args needed", EnumChatType.Notification);
                     return;
                 }
-                foreach (var pl in sapi.World.AllPlayers)
+                /*foreach (var pl in sapi.World.AllPlayers)
                 {
                     if (pl.PlayerName.Equals(args[2]))
                     {
@@ -213,7 +211,7 @@ namespace canclasses.src
                         }
                     }
                     player.SendMessage(GlobalConstants.GeneralChatGroup, pl.PlayerName + " no such player.", EnumChatType.Notification);
-                }
+                }*/
             }
             else if (args[0].Equals("rename"))
             {
@@ -228,7 +226,7 @@ namespace canclasses.src
                 StringBuilder sb = new StringBuilder();
                 foreach (var plProgress in canCharSys.playersProgressInfos)
                 {
-                    sb.Append(plProgress.Key + " - " + plProgress.Value.globalExp);
+                    //sb.Append(plProgress.Key + " - " + plProgress.Value.globalExp);
                     sb.Append("\n");
                 }
                  player.SendMessage(GlobalConstants.GeneralChatGroup, sb.ToString(), EnumChatType.Notification);
@@ -255,15 +253,13 @@ namespace canclasses.src
             canCharSys.playersProgressInfos.TryGetValue(byPlayer.PlayerUID, out var plProgress);
             if (plProgress == null)
             {
-                plProgress = new PlayerCharacterClassProgressInfo(plClassCode, byPlayer.PlayerUID);
+                plProgress = new PlayerCharacterClassProgressInfo(byPlayer.PlayerUID);
                 canCharSys.playersProgressInfos.Add(byPlayer.PlayerUID, plProgress);
             }
             sapi.Network.GetChannel("cancharactersystem").SendPacket(new CANCharacterProgressInfoPacket()
             {
-                currentLevel = plProgress.globalPercents,
-                currentExpToNextLevel = plProgress.expToNextPercent,
-                packetType = EnumCANCharacterProgressInfoPacket.OnJoin,
-                allExpToNextLevel = plProgress.expToNextPercentAll
+                playerCharacterClassProgressInfo = plProgress,
+                packetType = EnumCANCharacterProgressInfoPacket.OnJoin
             }, sapi.World.PlayerByUid(byPlayer.PlayerUID) as IServerPlayer
             );
         }

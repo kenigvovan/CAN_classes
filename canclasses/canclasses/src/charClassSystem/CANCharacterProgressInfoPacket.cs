@@ -1,4 +1,5 @@
-﻿using ProtoBuf;
+﻿using canclasses.src.charClassSystem.PlayerProgression;
+using ProtoBuf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +11,9 @@ namespace canclasses.src.characterClassesSystem
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
     public class CANCharacterProgressInfoPacket
     {      
-        public int currentLevel;
-        public double currentExpToNextLevel;
-        public double allExpToNextLevel;
+        public PlayerCharacterClassProgressInfo playerCharacterClassProgressInfo;
         public EnumCANCharacterProgressInfoPacket packetType;
+        public SubClassType subClassTypeNewLevel;
 
     }
     

@@ -1,0 +1,13 @@
+﻿
+{
+    "smith": [ "smithdurabilitybonus", "armorrepairmaster" ],
+    "farmer": [ "clothier", "wildseeds", "forlastgrain", "farmlanddroprate" ],
+    "miner": [
+        "charcoalminer",
+        "clayminer",
+        "peatminer",
+        "miner"
+    ],
+    "soldier": [ "nothungry", "maxhealthextrapoints", "carefulwearing", "mule" ],
+    "hunter": [ "sealsecret", "sonoftheforest", "handymancopychiselblock" ]
+}
