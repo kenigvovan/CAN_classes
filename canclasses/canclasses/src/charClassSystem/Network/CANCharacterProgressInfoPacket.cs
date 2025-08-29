@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace canclasses.src.characterClassesSystem
+namespace canclasses.src.charClassSystem.Network
 {
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
     public class CANCharacterProgressInfoPacket

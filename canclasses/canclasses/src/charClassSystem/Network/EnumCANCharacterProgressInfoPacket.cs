@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace canclasses.src.characterClassesSystem
+namespace canclasses.src.charClassSystem.Network
 {
     public enum EnumCANCharacterProgressInfoPacket
     {

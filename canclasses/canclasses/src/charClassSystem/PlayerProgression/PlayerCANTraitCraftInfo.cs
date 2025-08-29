@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace canclasses.src.characterClassesSystem
+namespace canclasses.src.charClassSystem.PlayerProgression
 {
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class PlayerCANTraitCraftInfo

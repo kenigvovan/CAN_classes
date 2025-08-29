@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using canclasses.src.characterClassesSystem;
 using Vintagestory.GameContent;
 
-namespace canclasses.src.characterClassesSystem
+namespace canclasses.src.charClassSystem.PlayerProgression
 {
     public class CANTrait
     {

@@ -1,4 +1,4 @@
-﻿using canclasses.src.characterClassesSystem;
+﻿using canclasses.src.charClassSystem.Network;
 using ProtoBuf;
 using System;
 using System.Collections.Generic;

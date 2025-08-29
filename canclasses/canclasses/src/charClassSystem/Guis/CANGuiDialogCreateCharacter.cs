@@ -1,4 +1,6 @@
 ﻿using Cairo;
+using canclasses.src.characterClassesSystem;
+using canclasses.src.charClassSystem.PlayerProgression;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +15,7 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
-namespace canclasses.src.characterClassesSystem
+namespace canclasses.src.charClassSystem.Guis
 {
     public class CANGuiDialogCreateCharacter : GuiDialog
     {
@@ -71,9 +73,9 @@ namespace canclasses.src.characterClassesSystem
                 capi.Gui
                 .CreateCompo("createcharacter", dialogBounds)
                 .AddShadedDialogBG(bgBounds, true)
-                .AddDialogTitleBar(curTab == 0 ? Lang.Get("Customize Skin") : (curTab == 1 ? Lang.Get("Select character class") : Lang.Get("Select your outfit")), OnTitleBarClose)
+                .AddDialogTitleBar(curTab == 0 ? Lang.Get("Customize Skin") : curTab == 1 ? Lang.Get("Select character class") : Lang.Get("Select your outfit"), OnTitleBarClose)
                 .AddIf(AllowClassSelection)
-                    .AddHorizontalTabs(tabs, tabBounds, onTabClicked, CairoFont.WhiteSmallText().WithWeight(Cairo.FontWeight.Bold), CairoFont.WhiteSmallText().WithWeight(Cairo.FontWeight.Bold), "tabs")
+                    .AddHorizontalTabs(tabs, tabBounds, onTabClicked, CairoFont.WhiteSmallText().WithWeight(FontWeight.Bold), CairoFont.WhiteSmallText().WithWeight(FontWeight.Bold), "tabs")
                 .EndIf()
                 .BeginChildElements(bgBounds)
             ;
@@ -114,14 +116,14 @@ namespace canclasses.src.characterClassesSystem
 
                 foreach (var skinpart in skinMod.AvailableSkinParts)
                 {
-                    bounds = ElementBounds.Fixed(leftX, (prevbounds == null || prevbounds.fixedY == 0) ? -10 : prevbounds.fixedY + 8, colorIconSize, colorIconSize);
+                    bounds = ElementBounds.Fixed(leftX, prevbounds == null || prevbounds.fixedY == 0 ? -10 : prevbounds.fixedY + 8, colorIconSize, colorIconSize);
                     if (!AllowedSkinPartSelection(skinpart.Code)) continue;
 
                     string code = skinpart.Code;
 
                     AppliedSkinnablePartVariant appliedVar = skinMod.AppliedSkinParts.FirstOrDefault(sp => sp.PartCode == code);
 
-                    var variants = skinpart.Variants.Where(p => p.Category == variantCategory || (AllowKeepCurrent && p.Code == appliedVar.Code)).ToArray();
+                    var variants = skinpart.Variants.Where(p => p.Category == variantCategory || AllowKeepCurrent && p.Code == appliedVar.Code).ToArray();
 
                     if (skinpart.Type == EnumSkinnableType.Texture && !skinpart.UseDropDown)
                     {
@@ -401,15 +403,15 @@ namespace canclasses.src.characterClassesSystem
 
         void changeClass(int dir)
         {
-            this.currentClassIndex = GameMath.Mod(this.currentClassIndex + dir, this.modSys.characterClasses.Count);
-            CharacterClass characterClass = this.modSys.characterClasses[this.currentClassIndex];
-            this.Composers["createcharacter"].GetDynamicText("className").SetNewText(Lang.Get("characterclass-" + characterClass.Code));
+            currentClassIndex = GameMath.Mod(currentClassIndex + dir, modSys.characterClasses.Count);
+            CharacterClass characterClass = modSys.characterClasses[currentClassIndex];
+            Composers["createcharacter"].GetDynamicText("className").SetNewText(Lang.Get("characterclass-" + characterClass.Code));
             StringBuilder stringBuilder1 = new StringBuilder();
             StringBuilder stringBuilder2 = new StringBuilder();
             //stringBuilder1.AppendLine(Lang.Get("characterdesc-" + characterClass.Code));
             stringBuilder1.AppendLine();
             stringBuilder1.AppendLine(Lang.Get("traits-title"));
-            foreach (CANTrait trait in (IEnumerable<CANTrait>)((IEnumerable<string>)characterClass.Traits).Select<string, CANTrait>((System.Func<string, CANTrait>)(code => this.modSys.TraitsByCode[code])).OrderBy<CANTrait, int>((System.Func<CANTrait, int>)(trait => (int)trait.Type)))
+            foreach (CANTrait trait in (IEnumerable<CANTrait>)characterClass.Traits.Select(code => modSys.TraitsByCode[code]).OrderBy(trait => (int)trait.Type))
             {
                 stringBuilder2.Clear();
                 /*foreach (KeyValuePair<string, double> attribute in trait.Attributes)
@@ -420,14 +422,14 @@ namespace canclasses.src.characterClassesSystem
                 }*/
                 if (stringBuilder2.Length > 0)
                 {
-                    stringBuilder1.AppendLine(Lang.Get("traitwithattributes", (object)Lang.Get("trait-" + trait.Code), (object)stringBuilder2));
+                    stringBuilder1.AppendLine(Lang.Get("traitwithattributes", Lang.Get("trait-" + trait.Code), stringBuilder2));
                 }
                 else
                 {
                     string ifExists = Lang.GetIfExists("traitdesc-" + trait.Code);
                     if (ifExists != null)
                     {
-                        stringBuilder1.AppendLine(Lang.Get("traitwithattributes", (object)Lang.Get("trait-" + trait.Code), (object)ifExists));
+                        stringBuilder1.AppendLine(Lang.Get("traitwithattributes", Lang.Get("trait-" + trait.Code), ifExists));
                     }
                     else
                         stringBuilder1.AppendLine(Lang.Get("trait-" + trait.Code));
@@ -438,9 +440,9 @@ namespace canclasses.src.characterClassesSystem
                 stringBuilder1.AppendLine("No positive or negative traits");
             stringBuilder1.Append("\n\n");
             stringBuilder1.AppendLine(Lang.Get("characterdesc-" + characterClass.Code));
-            this.Composers["createcharacter"].GetRichtext("characterDesc").SetNewText(stringBuilder1.ToString(), CairoFont.WhiteDetailText());
+            Composers["createcharacter"].GetRichtext("characterDesc").SetNewText(stringBuilder1.ToString(), CairoFont.WhiteDetailText());
 
-            this.modSys.setCharacterClass(this.capi.World.Player.Entity, characterClass.Code);
+            modSys.setCharacterClass(capi.World.Player.Entity, characterClass.Code);
             reTesselate();
             /*
             currentClassIndex = GameMath.Mod(currentClassIndex + dir, modSys.characterClasses.Count);

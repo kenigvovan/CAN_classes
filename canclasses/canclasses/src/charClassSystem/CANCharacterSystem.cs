@@ -1,4 +1,6 @@
 ﻿using Cairo;
+using canclasses.src.charClassSystem.Guis;
+using canclasses.src.charClassSystem.Network;
 using canclasses.src.charClassSystem.PlayerProgression;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -513,12 +515,12 @@ namespace canclasses.src.characterClassesSystem
             api.Event.PlayerJoin += Event_PlayerJoinServer;
             api.Event.ServerRunPhase(EnumServerRunPhase.ModsAndConfigReady, loadCharacterClasses);
 
-            this.traitConnectedCraftsNames = this.api.Assets.Get("config/traitconnectedcraftnames.json").ToObject<HashSet<string>>();
-            this.craftNameToTraitCodeMap = this.api.Assets.Get("config/craftnametotraitcodemap.json").ToObject<Dictionary<string, string>>();
+            this.traitConnectedCraftsNames = this.api.Assets.Get("canclasses:config/traitconnectedcraftnames.json").ToObject<HashSet<string>>();
+            this.craftNameToTraitCodeMap = this.api.Assets.Get("canclasses:config/craftnametotraitcodemap.json").ToObject<Dictionary<string, string>>();
             this.expReceiversClasses = this.api.Assets.Get("canclasses:config/classtoexpgainways.json").ToObject<Dictionary<string, HashSet<SubClassType>>>();
 
             //Load exp values for entity killed, block broken
-            killedEntityToExp = this.api.Assets.Get("config/killedentitytoexp.json").ToObject<Dictionary<SubClassType, Dictionary<string, double>>>();
+            killedEntityToExp = this.api.Assets.Get("canclasses:config/killedentitytoexp.json").ToObject<Dictionary<SubClassType, Dictionary<string, double>>>();
             Dictionary<SubClassType, Dictionary<string, double>> tmpIdExp = this.api.Assets.Get("canclasses:config/blocknametoexpgain.json").ToObject<Dictionary<SubClassType, Dictionary<string, double>>>();
             foreach (var itCode in tmpIdExp)
             {

@@ -13,6 +13,7 @@ using System.Linq;
 using System;
 using canclasses.src.charClassSystem.PlayerProgression;
 using Vintagestory.GameContent;
+using canclasses.src.charClassSystem.Network;
 
 namespace canclasses.src
 {

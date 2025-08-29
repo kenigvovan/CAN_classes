@@ -324,37 +324,7 @@ namespace canclasses.src
             {
                 dsc.Append("Durability bonus: +").Append(durBonus).Append("%\n");
             }
-            if(itemstack.Attributes.HasAttribute("canencrusted"))
-            {
-                var tree = itemstack.Attributes.GetTreeAttribute("canencrusted");
-                dsc.Append(Lang.Get("canmods:item-can-have-n-sockets", tree.GetInt("socketsnumber")));
-                dsc.Append("\n");
-                for (int i = 0; i < tree.GetInt("socketsnumber"); i++)
-                {
-                    var treeSlot = tree.GetTreeAttribute("slot" + i);
-                    dsc.Append(Lang.Get("canmods:item-socket-tier", treeSlot.GetAsInt("sockettype")));
-                    dsc.Append("\n");
-                    if(treeSlot.GetString("gemtype") != "")
-                    {
-                        if (treeSlot.GetString("attributeBuff").Equals("maxhealthExtraPoints"))
-                        {
-                            dsc.Append(Lang.Get("canmods:socket-has-attribute", i, treeSlot.GetFloat("attributeBuffValue"))).Append(Lang.Get("canmods:buff-name-" + treeSlot.GetString("attributeBuff")));
-                        }
-                        else
-                        {
-                            dsc.Append(Lang.Get("canmods:socket-has-attribute-percent", i, treeSlot.GetFloat("attributeBuffValue") * 100)).Append(Lang.Get("canmods:buff-name-" + treeSlot.GetString("attributeBuff")));
-                        }
-                        dsc.Append('\n');
-                    }
-                }
-
-            }
-            else if(itemstack.ItemAttributes != null && itemstack.ItemAttributes.KeyExists("canhavesocketsnumber"))
-            {
-                dsc.Append(Lang.Get("canmods:item-can-have-n-sockets", itemstack.ItemAttributes["canhavesocketsnumber"].AsInt()));
-                dsc.Append("\n");
-            }
-
+           
             return;
         }
 
