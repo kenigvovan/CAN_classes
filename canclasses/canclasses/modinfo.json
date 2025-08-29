@@ -5,8 +5,8 @@
     "authors": [
         "KenigVovan"
     ],
-    "description": "To be added",
-    "version": "1.0.15",
+    "description": "One class with subclasses",
+    "version": "1.1.0",
     "dependencies": {
         "game": ""
     }

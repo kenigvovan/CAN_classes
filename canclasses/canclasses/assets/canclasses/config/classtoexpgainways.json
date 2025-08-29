@@ -2,5 +2,5 @@
   "smithing": [ "smith" ],
   "treecutting": [ "hunter" ],
   "entitieskilling": [ "soldier" ],
-  "chiseling": ["handy"]
+  "chiseling": []
 }

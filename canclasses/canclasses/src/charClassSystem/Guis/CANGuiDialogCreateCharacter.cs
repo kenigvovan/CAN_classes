@@ -65,7 +65,7 @@ namespace canclasses.src.charClassSystem.Guis
 
             GuiTab[] tabs = new GuiTab[] {
                 new GuiTab() { Name = Lang.Get("tab-skinandvoice"), DataInt = 0 },
-                new GuiTab() { Name = Lang.Get("tab-charclass"), DataInt = 1 },
+                //new GuiTab() { Name = Lang.Get("tab-charclass"), DataInt = 1 },
             };
 
             GuiComposer createCharacterComposer;
@@ -195,7 +195,7 @@ namespace canclasses.src.charClassSystem.Guis
                     .AddIf(modSys != null && capi.Settings.String.Exists("lastSkinSelection"))
                         .AddButton(Lang.Get("Last selection"), () => { return OnRandomizeSkin(modSys.getPreviousSelection()); }, ElementBounds.Fixed(130, dlgHeight - 25).WithAlignment(EnumDialogArea.LeftFixed).WithFixedPadding(8, 6), CairoFont.WhiteSmallText(), EnumButtonStyle.Small)
                     .EndIf()
-                    .AddSmallButton(Lang.Get("Confirm Skin"), OnNext, ElementBounds.Fixed(0, dlgHeight - 25).WithAlignment(EnumDialogArea.RightFixed).WithFixedPadding(12, 6), EnumButtonStyle.Normal)
+                    .AddSmallButton(Lang.Get("Confirm Skin"), OnConfirm, ElementBounds.Fixed(0, dlgHeight - 25).WithAlignment(EnumDialogArea.RightFixed).WithFixedPadding(12, 6), EnumButtonStyle.Normal)
                 ;
 
                 createCharacterComposer.GetToggleButton("showdressedtoggle").SetValue(!charNaked);

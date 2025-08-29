@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using ProtoBuf;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
@@ -595,7 +597,7 @@ namespace canclasses.src.characterClassesSystem
             {
                 sendPlayersInfos();
                 sapi.Logger.Debug("Send players class info");
-            }), 300);
+            }), 30);
         }
         
         private void Event_PlayerJoinServer(IServerPlayer byPlayer)
@@ -880,6 +882,43 @@ namespace canclasses.src.characterClassesSystem
         }
         private void composeProgressTab(GuiComposer compo)
         {
+            
+
+            
+            ElementBounds bounds1 = new ElementBounds()
+            {
+                Alignment = EnumDialogArea.LeftTop,
+                BothSizing = ElementSizing.Fixed,
+                fixedWidth = 200,
+                fixedHeight = 10
+            }.WithFixedAlignmentOffset(0.5, 45);
+
+            ElementBounds currentBounds = bounds1;
+
+            foreach (var it in ClientPlayerProgressInfo.subClasses)
+            {
+                ElementBounds bounds2 = ElementStdBounds.Statbar(EnumDialogArea.LeftTop, (double)200).WithFixedAlignmentOffset(0, -0);
+                bounds2.WithFixedHeight(10.0);
+
+                var expStatBar = new GuiElementStatbar(capi, bounds2, GuiStyle.XPBarColor, false, false);
+                compo.BeginChildElements(currentBounds)
+                                       .AddInteractiveElement(expStatBar, "statbar" + it.Key.ToString())
+                                       .EndChildElements();
+                var name = currentBounds.RightCopy(10);
+                var level = currentBounds.BelowCopy(0, 5);
+                name.fixedY -= 5;
+                expStatBar.SetLineInterval(1f);
+                expStatBar.SetValues((float)(it.Value.ExpToNextBorder - it.Value.ExpToNextLeft), 0.0f, (float)it.Value.ExpToNextBorder);
+
+                compo.AddStaticText(it.Value.SubClassType.ToString(), CairoFont.SmallButtonText().WithOrientation(EnumTextOrientation.Left), name);
+                compo.AddStaticText(it.Value.PercentsReached + " level", CairoFont.SmallButtonText().WithOrientation(EnumTextOrientation.Left), level);
+                currentBounds = level.BelowCopy(0, 15);
+            }
+
+
+            
+           
+            //.Compose();
             //compo.AddRichtext(Lang.Get("canclasses:can-level", this.clientCurrentLevel.ToString()), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15).WithFontSize(16), ElementBounds.Fixed(0.0, 25.0, 385.0, 200.0));
             //compo.AddRichtext(Lang.Get("canclasses:can-curexp-allexp", String.Format("{0:0.0}",this.clientAllExpToNextLevel - this.clientCurrentExpToNextLevel), this.clientAllExpToNextLevel.ToString()), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15).WithFontSize(16), ElementBounds.Fixed(0.0, 55.0, 385.0, 200.0));
         }

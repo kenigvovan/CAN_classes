@@ -25,9 +25,6 @@ namespace canclasses.src
         public static ICoreClientAPI capi;
         public static ICoreServerAPI sapi;
         public static CANCharacterSystem canCharSys;
-        public static Dictionary<string, Dictionary<string, float>> gemBuffValuesByLevel;
-        public static Dictionary<string, HashSet<string>> buffNameToPossibleItem;
-        //public GuiDialogSocketsInfo guiDialogSocketsInfo;
         public bool onMatchGridRecipeDelegate(IPlayer player, GridRecipe recipe, ItemSlot[] ingredients, int gridWidth)
         {
             return true;
@@ -64,8 +61,6 @@ namespace canclasses.src
         public override void StartServerSide(ICoreServerAPI api)
         {
             base.StartServerSide(api);
-            gemBuffValuesByLevel = new Dictionary<string, Dictionary<string, float>>();
-            buffNameToPossibleItem = new Dictionary<string, HashSet<string>>();
             harmonyInstance = new Harmony(harmonyID);
             sapi = api;
             harmonyInstance.Patch(typeof(CollectibleObject).GetMethod("Equals", new[] { typeof(ItemStack), typeof(ItemStack), typeof(string[]) }), postfix: new HarmonyMethod(typeof(harmPatch).GetMethod("Postfix_TreeAttribute_Equal")));

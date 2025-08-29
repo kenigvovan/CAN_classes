@@ -25,11 +25,11 @@ namespace canclasses.src.charClassSystem.PlayerProgression
         public PlayerCharacterClassProgressInfo(string plUID)
         {
             this.plUID = plUID;
-            subClasses.Add(SubClassType.SMITH, new PlayerSubClass() { SubClassType = SubClassType.SMITH, ExpToNextBorder = calculateNextLevelExp(0, SubClassType.SMITH), ExpToNextLeft = 0, AlreadyCollectedExp = 0, LevelsGotThisDay = 0, WhichDay = 0 });
-            subClasses.Add(SubClassType.FARMER, new PlayerSubClass() { SubClassType = SubClassType.FARMER, ExpToNextBorder = calculateNextLevelExp(0, SubClassType.FARMER), ExpToNextLeft = 0, AlreadyCollectedExp = 0, LevelsGotThisDay = 0, WhichDay = 0 });
-            subClasses.Add(SubClassType.MINER, new PlayerSubClass() { SubClassType = SubClassType.MINER, ExpToNextBorder = calculateNextLevelExp(0, SubClassType.MINER), ExpToNextLeft = 0, AlreadyCollectedExp = 0, LevelsGotThisDay = 0, WhichDay = 0 });
-            subClasses.Add(SubClassType.HUNTER, new PlayerSubClass() { SubClassType = SubClassType.HUNTER, ExpToNextBorder = calculateNextLevelExp(0, SubClassType.HUNTER), ExpToNextLeft = 0, AlreadyCollectedExp = 0, LevelsGotThisDay = 0, WhichDay = 0 });
-            subClasses.Add(SubClassType.SOLDIER, new PlayerSubClass() { SubClassType = SubClassType.SOLDIER, ExpToNextBorder = calculateNextLevelExp(0, SubClassType.SOLDIER), ExpToNextLeft = 0, AlreadyCollectedExp = 0, LevelsGotThisDay = 0, WhichDay = 0 });
+            subClasses.Add(SubClassType.SMITH, new PlayerSubClass() { SubClassType = SubClassType.SMITH, ExpToNextBorder = calculateNextLevelExp(0, SubClassType.SMITH), ExpToNextLeft = calculateNextLevelExp(0, SubClassType.SMITH), AlreadyCollectedExp = 0, LevelsGotThisDay = 0, WhichDay = 0 });
+            subClasses.Add(SubClassType.FARMER, new PlayerSubClass() { SubClassType = SubClassType.FARMER, ExpToNextBorder = calculateNextLevelExp(0, SubClassType.FARMER), ExpToNextLeft = calculateNextLevelExp(0, SubClassType.FARMER), AlreadyCollectedExp = 0, LevelsGotThisDay = 0, WhichDay = 0 });
+            subClasses.Add(SubClassType.MINER, new PlayerSubClass() { SubClassType = SubClassType.MINER, ExpToNextBorder = calculateNextLevelExp(0, SubClassType.MINER), ExpToNextLeft = calculateNextLevelExp(0, SubClassType.MINER), AlreadyCollectedExp = 0, LevelsGotThisDay = 0, WhichDay = 0 });
+            subClasses.Add(SubClassType.HUNTER, new PlayerSubClass() { SubClassType = SubClassType.HUNTER, ExpToNextBorder = calculateNextLevelExp(0, SubClassType.HUNTER), ExpToNextLeft = calculateNextLevelExp(0, SubClassType.HUNTER), AlreadyCollectedExp = 0, LevelsGotThisDay = 0, WhichDay = 0 });
+            subClasses.Add(SubClassType.SOLDIER, new PlayerSubClass() { SubClassType = SubClassType.SOLDIER, ExpToNextBorder = calculateNextLevelExp(0, SubClassType.SOLDIER), ExpToNextLeft = calculateNextLevelExp(0, SubClassType.SOLDIER), AlreadyCollectedExp = 0, LevelsGotThisDay = 0, WhichDay = 0 });
         }
         public List<string>GetAllTraits()
         {
